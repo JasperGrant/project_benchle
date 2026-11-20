@@ -30,6 +30,10 @@ Daily bench-press puzzle site with two timed games, live at https://benchle.win.
 - Persistence: localStorage key `benchle:v1` → `{unit, days: {"date|game|unit": {...}}, stats: {count|workin: {played, streak, maxStreak, last, best: {lb, kg}}}}`. In-progress games save on each answer and resume via the Play button. All storage access is wrapped in try/catch.
 - Share: native share sheet on touch devices (not in iframes), else clipboard, else a selectable textarea.
 
+## Temporary
+
+- `maybeHello()` in `index.html`: between rounds, a 15% chance (at most once per game) of a 1.5 s "Hello Trevor Tran 👋" overlay, with the clock paused. Remove it with its call in `advance()`, the `#hello` element and the `.hello` styles when asked.
+
 ## Design
 
 Safety-yellow "loading zone" palette (`--floor #F2C230`, `--iron #25282D`, `--chalk #FBFAF4`, `--hit/--near/--miss`). Hazard stripe at the top is the only decoration. Condensed type for numbers and headings. Mobile-first, max width 560 px. Respects `prefers-reduced-motion`.
