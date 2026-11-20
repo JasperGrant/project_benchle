@@ -4,6 +4,13 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "plate-math",
   "compatibility_date": "2025-09-01",
+  // Attach both hostnames to this Worker on every deploy. Cloudflare creates the
+  // DNS records and certificates itself; there must be no other A/AAAA/CNAME
+  // records for these names in the benchle.win DNS zone.
+  "routes": [
+    { "pattern": "benchle.win", "custom_domain": true },
+    { "pattern": "www.benchle.win", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./public",
     "not_found_handling": "single-page-application"

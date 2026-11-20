@@ -31,7 +31,7 @@ The site is entirely static, so you can also go to **Workers & Pages → Create 
 
 ### Custom domain
 
-After the first deploy, open the Worker in the dashboard, go to **Settings → Domains & Routes → Add → Custom domain**, and enter a domain you have on Cloudflare.
+`wrangler.jsonc` attaches `benchle.win` and `www.benchle.win` to the Worker as custom domains on every deploy. Cloudflare creates the DNS records and TLS certificates itself. For this to work, the `benchle.win` zone must be in the same Cloudflare account, and it must not have any other A, AAAA or CNAME records for `benchle.win` or `www`; delete those first if a deploy reports a conflict.
 
 ## Tweaking
 
