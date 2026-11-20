@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--floor:#F2C230;--floor-deep:#D7A916;--iron:#25282D;--chalk:#FBFAF4}
+  *{box-sizing:border-box;margin:0}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{background:var(--floor);color:var(--iron);font-family:'Barlow',sans-serif;position:relative}
+  .stripe{position:absolute;left:0;right:0;top:0;height:40px;background:repeating-linear-gradient(-45deg,var(--iron) 0 26px,var(--floor) 26px 52px)}
+  .stripe.b{top:auto;bottom:0;height:22px}
+  .copy{position:absolute;left:68px;top:120px;width:500px}
+  h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:164px;line-height:.8;letter-spacing:-.015em}
+  .tag{font-weight:600;font-size:38px;line-height:1.2;margin-top:30px}
+  .chips{display:flex;gap:14px;margin-top:30px}
+  .chip{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;background:var(--iron);color:var(--chalk);border-radius:14px;padding:8px 18px}
+  .art{position:absolute;right:44px;top:92px;width:540px;height:470px;background:var(--chalk);border-radius:34px;box-shadow:0 10px 0 var(--floor-deep);display:flex;flex-direction:column;justify-content:center;padding:18px 18px 26px}
+  .art svg{display:block;width:100%;height:auto}
+  .q{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:46px;text-align:center;margin-top:6px}
+</style></head>
+<body>
+  <div class="stripe"></div>
+  <div class="copy">
+    <h1>Benchle</h1>
+    <p class="tag">Two daily bench-press puzzles. Count the bar. Nail the work-in.</p>
+    <div class="chips"><span class="chip">Bar count</span><span class="chip">Work in</span></div>
+  </div>
+  <div class="art"><div id="bar"></div><p class="q">What's on the bar?</p></div>
+  <div class="stripe b"></div>
+<script src="../../public/gen.js"></script>
+<script>
+  // Same drawing as barSVG() in index.html.
+  const {SYS, fmtW} = BenchleGen;
+  function barSVG(sys, plates){
+    const W=430, H=270, CY=135;
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    s += `<rect x="0" y="${CY-8}" width="48" height="16" rx="2" fill="#AEB6BD"/>`;
+    for(let x=4;x<46;x+=5) s += `<line x1="${x}" y1="${CY-8}" x2="${x+4}" y2="${CY+8}" stroke="#8D959C" stroke-width="1"/>`;
+    s += `<rect x="46" y="${CY-24}" width="14" height="48" rx="3" fill="#8D959C"/>`;
+    s += `<rect x="60" y="${CY-14}" width="${W-62}" height="28" rx="4" fill="#C3CAD0"/>`;
+    s += `<rect x="60" y="${CY-14}" width="${W-62}" height="7" rx="3" fill="#DCE1E5"/>`;
+    let x = 62;
+    for(const d of plates){
+      const w = sys.w[d], h = sys.h[d], L = sys.look(d), y = CY-h/2;
+      s += `<rect x="${x}" y="${y}" width="${w-2}" height="${h}" rx="5" fill="${L.fill}" stroke="${L.edge}" stroke-width="2"/>`;
+      s += `<rect x="${x+3}" y="${y+6}" width="3" height="${h-12}" rx="1.5" fill="#fff" opacity=".13"/>`;
+      const fs = Math.min(w*0.56, 24), ty = (y + CY-14)/2;
+      s += `<text x="${x+(w-2)/2}" y="${ty}" transform="rotate(-90 ${x+(w-2)/2} ${ty})" text-anchor="middle" dominant-baseline="central" font-family="Barlow Condensed" font-weight="800" font-size="${fs}" fill="${L.ink}">${fmtW(d)}</text>`;
+      x += w;
+    }
+    s += `<rect x="${x+2}" y="${CY-22}" width="16" height="44" rx="4" fill="#5B6168"/>`;
+    s += `<rect x="${x+5}" y="${CY-22}" width="3" height="44" fill="#7A8088"/>`;
+    return s + `</svg>`;
+  }
+  document.getElementById('bar').innerHTML = barSVG(SYS.lb, [45,45,35,10,5,2.5]);
+</script>
+</body></html>

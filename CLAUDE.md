@@ -8,6 +8,7 @@ Daily bench-press puzzle site with two timed games, live at https://benchle.win.
 - `public/gen.js`: the puzzle generator (`window.BenchleGen`), shared by the page and the build script: equipment (`SYS`), themes, `buildRounds`, `buildDay`, the compact encoding, and `dayFor(n)`.
 - `public/puzzles.js`: frozen puzzles, one line per day (`window.BENCHLE_PUZZLES`). Generated; don't edit by hand.
 - `scripts/make-puzzles.mjs`: `npm run puzzles [N]` makes sure days 1..N (default 500) exist, keeps every day already in the file, and checks every round. Fails loudly on any bad puzzle.
+- `public/og.png` (1200×630 link preview, used by `og:image` / `twitter:image`) and `public/apple-touch-icon.png` (180×180). Both are rendered from `scripts/og/` (`card.html`, `icon.html`) by `node scripts/og/render.js`, which needs Playwright; re-run it if the brand or wordmark changes.
 - `public/_headers`: Cloudflare headers (index is no-cache).
 - `wrangler.jsonc`: assets-only Cloudflare Worker serving `./public`.
 - `package.json`: `npm run dev` (wrangler dev, localhost:8787), `npm run deploy` (wrangler deploy), `npm run puzzles`.
