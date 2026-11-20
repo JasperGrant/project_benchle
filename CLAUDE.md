@@ -1,6 +1,6 @@
 # Benchle: notes for Claude Code
 
-Daily bench-press puzzle site with two timed games, live at https://benchle.win. The site was first called Plate Math; the Worker name `plate-math` and the storage key `platemath:v1` keep that name on purpose (renaming them would break the deploy and reset players' stats). Static only: no backend, no build step, no framework.
+Daily bench-press puzzle site with two timed games, live at https://benchle.win. The site was first called Plate Math; the Worker is still named `plate-math` on purpose (renaming it would create a new Worker and break the deploy). Static only: no backend, no build step, no framework.
 
 ## Layout
 
@@ -23,7 +23,7 @@ Daily bench-press puzzle site with two timed games, live at https://benchle.win.
 - Marks per round: `g` first try, `y` correct after mistakes, `r` missed. These drive the progress pips and the 🟩🟨🟥 share text.
 - Archive: `#archive` section, a month calendar (newest first) from puzzle 1 to today, like King Grid's. Each day has two marks (Bar count, Work in) for the current unit: green done, amber in progress. Tapping a day sets `viewKey` (null = today) and shows that puzzle on the home screen with the player's time per game. `?puzzle=N` links to a past puzzle; `syncUrl()` keeps the URL and title in step, and drops back to today when the viewed day is today or later.
 - Stats: `played` counts each date once per game (even if finished in both units). Streaks only count puzzles finished on their own date; archive plays count toward `best` but not the streak. A streak whose `last` day is before yesterday shows as 0.
-- Persistence: localStorage key `platemath:v1` → `{unit, days: {"date|game|unit": {...}}, stats: {count|workin: {played, streak, maxStreak, last, best: {lb, kg}}}}`. In-progress games save on each answer and resume via the Play button. All storage access is wrapped in try/catch.
+- Persistence: localStorage key `benchle:v1` → `{unit, days: {"date|game|unit": {...}}, stats: {count|workin: {played, streak, maxStreak, last, best: {lb, kg}}}}`. In-progress games save on each answer and resume via the Play button. All storage access is wrapped in try/catch.
 - Share: native share sheet on touch devices (not in iframes), else clipboard, else a selectable textarea.
 
 ## Design

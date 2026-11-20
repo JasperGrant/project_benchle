@@ -401,7 +401,7 @@ function barSVG(sys, plates){
 }
 
 /* ---------------- storage ---------------- */
-const STORE_KEY = 'platemath:v1'; // old name kept so players keep their stats
+const STORE_KEY = 'benchle:v1';
 let mem = {unit:'lb', days:{}, stats:{}};
 try{ const raw = localStorage.getItem(STORE_KEY); if(raw) mem = Object.assign(mem, JSON.parse(raw)); }catch(e){}
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(mem)); }catch(e){} }
