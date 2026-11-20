@@ -1,0 +1,13 @@
+{
+  "name": "plate-math",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Daily bench-press plate math games: Bar count and Work in.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
