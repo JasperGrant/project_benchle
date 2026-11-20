@@ -33,17 +33,25 @@ The site is entirely static, so you can also go to **Workers & Pages → Create 
 
 `wrangler.jsonc` attaches `benchle.win` and `www.benchle.win` to the Worker as custom domains on every deploy. Cloudflare creates the DNS records and TLS certificates itself. For this to work, the `benchle.win` zone must be in the same Cloudflare account, and it must not have any other A, AAAA or CNAME records for `benchle.win` or `www`; delete those first if a deploy reports a conflict.
 
+## Puzzles
+
+Each day has a theme (Regular session, Change plates, Messy rack, Heavy day, Milestones, Odd plates, Swap day), shuffled weekly, and the difficulty follows the weekday: easy Monday, hardest Saturday.
+
+The first 500 days (through April 1, 2028) are frozen in `public/puzzles.js`. After that the same generator in `public/gen.js` keeps making days, so the site never runs out. To freeze more days, run `npm run puzzles -- 1000`. It keeps every existing day and checks every new puzzle.
+
 ## Tweaking
 
-Everything lives in `public/index.html`. Useful knobs near the top of the script:
+Useful knobs (in `public/gen.js` unless noted):
 
 | What | Where |
 | --- | --- |
 | Puzzle #1 date | `const EPOCH = new Date(2026,10,19)` (month is 0-based) |
+| Themes and their wording | `THEMES` |
+| Difficulty by weekday | `WEEKDAY_LEVEL` |
 | Rounds per game | `GAMES.count.rounds`, `GAMES.workin.rounds` |
-| Time penalty per mistake | `PENALTY` (ms) |
-| Mistakes allowed per bar | `MAX_TRIES` |
+| Time penalty per mistake | `PENALTY` (ms, in `index.html`) |
+| Mistakes allowed per bar | `MAX_TRIES` (in `index.html`) |
 | Plates, bar weight, plate colors | `SYS` and `KG_LOOK` |
-| When Work in switches to the picture rounds | `visual:i>=4` in `buildRounds` |
+| When Work in switches to the picture rounds | `visFrom` in `buildRounds` |
 
-Changing the generator or the rounds changes every day's puzzles, including past ones. That's fine before launch but will reshuffle puzzles for anyone mid-day after launch.
+Changing `gen.js` doesn't touch the frozen days, only practice and days after the end of `puzzles.js`.

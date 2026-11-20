@@ -48,6 +48,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .units button[aria-pressed="true"]{background:var(--iron);color:var(--chalk)}
 .lede{font-size:19px;max-width:30em;margin:16px 0 4px}
 .today{font-weight:600;margin:0}
+.theme{margin:2px 0 0;font-size:16px}
+.theme b{font-family:var(--cond);font-weight:800;font-size:21px;margin-right:4px}
 .daynav{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 18px}
 .past-note{background:var(--iron);color:var(--chalk);border-radius:12px;padding:8px 12px;font-weight:600;font-size:15px;margin:0 0 16px}
 .game .status b{font-family:var(--cond);font-weight:800;font-size:22px}
@@ -172,6 +174,7 @@ textarea{width:100%;font:15px/1.4 var(--body);border-radius:12px;border:3px soli
   </div>
   <p class="lede">Two bench-press puzzles a day. Everyone gets the same bars, and new ones load at midnight.</p>
   <p class="today" id="today"></p>
+  <p class="theme" id="theme"></p>
   <div class="daynav">
     <button class="link" type="button" id="toToday" hidden>Today's puzzle</button>
     <button class="link" type="button" id="openArchive">Archive</button>
@@ -270,110 +273,21 @@ textarea{width:100%;font:15px/1.4 var(--body);border-radius:12px;border:3px soli
   </div>
 </div>
 
+<script src="gen.js"></script>
+<script src="puzzles.js"></script>
 <script>
 (() => {
 'use strict';
 
-/* ---------------- seeded randomness ---------------- */
-function xmur3(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return()=>{h=Math.imul(h^(h>>>16),2246822507);h=Math.imul(h^(h>>>13),3266489909);return(h^=h>>>16)>>>0;};}
-function mulberry32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-const rngFor = s => mulberry32(xmur3(s)());
-
-/* ---------------- dates ---------------- */
-const pad = n => String(n).padStart(2,'0');
-const dateKey = (d=new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const EPOCH = new Date(2026,10,19); // puzzle no. 1
-function puzzleNo(key){const [y,m,d]=key.split('-').map(Number);return Math.round((new Date(y,m-1,d)-EPOCH)/864e5)+1;}
-function prevKey(key){const [y,m,d]=key.split('-').map(Number);return dateKey(new Date(y,m-1,d-1));}
-const keyForPuzzle = n => dateKey(new Date(EPOCH.getFullYear(),EPOCH.getMonth(),EPOCH.getDate()+n-1));
-const dateOf = key => { const [y,m,d]=key.split('-').map(Number); return new Date(y,m-1,d); };
-const longDate = key => dateOf(key).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-
-/* ---------------- equipment ---------------- */
-const KG_LOOK = {
-  25:{fill:'#C2302A',edge:'#9E231E',ink:'#FFFFFF'},
-  20:{fill:'#1F5BA8',edge:'#17457F',ink:'#FFFFFF'},
-  15:{fill:'#E9B71C',edge:'#BF9411',ink:'#25282D'},
-  10:{fill:'#2C8A4C',edge:'#1F6838',ink:'#FFFFFF'},
-  5:{fill:'#F2F1EC',edge:'#C9C7BE',ink:'#25282D'},
-  2.5:{fill:'#C2302A',edge:'#9E231E',ink:'#FFFFFF'},
-  1.25:{fill:'#CDD2D7',edge:'#A3AAB1',ink:'#25282D'}
-};
-const IRON = {fill:'#2C3036',edge:'#4A5058',ink:'#EDE8DA'};
-const SYS = {
-  lb:{id:'lb',bar:45,plates:[45,35,25,10,5,2.5],
-      w:{45:44,35:40,25:35,10:29,5:25,2.5:24},
-      h:{45:250,35:222,25:188,10:142,5:118,2.5:98},
-      look:()=>IRON},
-  kg:{id:'kg',bar:20,plates:[25,20,15,10,5,2.5,1.25],
-      w:{25:44,20:41,15:37,10:32,5:27,2.5:24,1.25:24},
-      h:{25:250,20:250,15:226,10:192,5:142,2.5:116,1.25:98},
-      look:d=>KG_LOOK[d]}
-};
-const fmtW = n => String(+(+n).toFixed(2));
-const total = (sys,pl) => +(sys.bar + 2*pl.reduce((s,d)=>s+d,0)).toFixed(2);
-const sleeveWidth = (sys,pl) => pl.reduce((s,d)=>s+sys.w[d],0);
-const MAX_SLEEVE = 340;
-
-/* A realistic one-side load. t: 0 (easy) .. 1 (messy). Heaviest plates sit closest to the collar. */
-function genLoad(rng, sys, t, maxPlates){
-  const P = sys.plates;
-  for(let tries=0; tries<80; tries++){
-    const out = [];
-    let base = 0;
-    if(sys.id==='kg' && rng()<0.35) base = 1;           // 20s are common in kg gyms
-    if(rng()<0.12) base = sys.id==='lb' ? 2 : 3;        // the occasional light warm-up bar
-    let maxBase = base>=2 ? 2 : 1 + Math.round(t*3);
-    if(base<2 && t>0.6 && rng()<0.3) maxBase++;
-    const nBase = 1 + Math.floor(rng()*maxBase);
-    for(let i=0;i<nBase;i++) out.push(P[base]);
-    const maxExtras = 1 + Math.round(t*3);
-    let extras = 0;
-    for(let i=base+1; i<P.length && extras<maxExtras; i++){
-      let p = 0.18 + 0.42*t;
-      if(sys.id==='lb' && P[i]===35) p *= 0.5;
-      if(rng()<p){
-        const c = rng() < 0.22*t ? 2 : 1;
-        for(let k=0;k<c && extras<maxExtras;k++){ out.push(P[i]); extras++; }
-      }
-    }
-    if(out.length>maxPlates) continue;
-    if(sleeveWidth(sys,out)>MAX_SLEEVE) continue;
-    return out.sort((a,b)=>b-a);
-  }
-  return [P[0]];
-}
-
-const GAMES = {
-  count:{name:'Bar count', rounds:8},
-  workin:{name:'Work in', rounds:10}
-};
+/* ---------------- shared generator (gen.js) ---------------- */
+const {dateKey, pad, EPOCH, puzzleNo, keyForPuzzle, SYS, fmtW, GAMES, THEMES, THEME_IDS, buildRounds, dayFor} = window.BenchleGen;
 const PENALTY = 5000, MAX_TRIES = 3;
 
-function buildRounds(game, sys, seed){
-  const rng = rngFor(seed);
-  const N = GAMES[game].rounds, out = [], seen = new Set();
-  for(let i=0;i<N;i++){
-    const t = N>1 ? i/(N-1) : 0;
-    for(let k=0;k<200;k++){
-      if(game==='count'){
-        const plates = genLoad(rng, sys, t, 8);
-        const ans = total(sys, plates);
-        if(seen.has(ans) && k<199) continue;
-        seen.add(ans); out.push({plates, answer:ans}); break;
-      } else {
-        const light = genLoad(rng, sys, t*0.9, 7);
-        const pull = sys.plates[Math.floor(rng()*sys.plates.length)];
-        const heavy = [...light, pull].sort((a,b)=>b-a);
-        if(heavy.length>8 || sleeveWidth(sys,heavy)>MAX_SLEEVE) continue;
-        const A = total(sys,heavy), B = total(sys,light), key = A+'/'+B;
-        if(seen.has(key) && k<199) continue;
-        seen.add(key); out.push({heavy, light, A, B, answer:pull, visual:i>=4}); break;
-      }
-    }
-  }
-  return out;
-}
+/* ---------------- dates ---------------- */
+function prevKey(key){const [y,m,d]=key.split('-').map(Number);return dateKey(new Date(y,m-1,d-1));}
+const dateOf = key => { const [y,m,d]=key.split('-').map(Number); return new Date(y,m-1,d); };
+const longDate = key => dateOf(key).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+const themeOf = key => THEMES[dayFor(puzzleNo(key)).theme];
 
 /* ---------------- drawing ---------------- */
 function barSVG(sys, plates){
@@ -441,6 +355,8 @@ function renderHome(){
   syncUrl();
   const key = curKey(), unit = mem.unit, sys = SYS[unit], past = !!viewKey;
   $('today').textContent = `Puzzle ${puzzleNo(key)} · ${longDate(key)}`;
+  const th = themeOf(key);
+  $('theme').innerHTML = `<b>${th.name}.</b> ${th.blurb}`;
   $('toToday').hidden = !past;
   $('pastNote').hidden = !past;
   $('pastNote').textContent = 'This is an archive puzzle. Your time counts toward your best, but not your streak.';
@@ -495,7 +411,7 @@ function renderArchive(){
         return `${GAMES[g].name} ${!rec ? 'not played' : rec.status==='done' ? fmtTime(rec.final) : 'in progress'}`;
       });
       const marks = Object.keys(GAMES).map(g=>`<i class="${markFor(key,g)}"></i>`).join('');
-      cells += `<button type="button" class="day${key===today?' today':''}" data-n="${n}" aria-label="Puzzle ${n}, ${label.split(' ')[0]} ${day}${key===today?' (today)':''}. ${parts.join('. ')}." title="No. ${n}: ${parts.join(' · ')}"><span class="n">${day}</span><span class="marks">${marks}</span></button>`;
+      cells += `<button type="button" class="day${key===today?' today':''}" data-n="${n}" aria-label="Puzzle ${n}, ${label.split(' ')[0]} ${day}${key===today?' (today)':''}, ${themeOf(key).name}. ${parts.join('. ')}." title="No. ${n}, ${themeOf(key).name}: ${parts.join(' · ')}"><span class="n">${day}</span><span class="marks">${marks}</span></button>`;
     }
     html += `<section class="month"><h3>${label}</h3><div class="cal">${cells}</div></section>`;
     if(--m < 0){ m = 11; y--; }
@@ -515,15 +431,20 @@ function openDaily(game){
   if(rec && rec.status==='done'){ showResult({game, unit, key, daily:true, ...rec}); return; }
   const sys = SYS[unit];
   G = { game, unit, sys, key, id, daily:true,
-        rounds: buildRounds(game, sys, `${key}|${game}|${unit}`),
+        rounds: dayFor(puzzleNo(key))[unit][game], theme: dayFor(puzzleNo(key)).theme,
         idx: rec?rec.idx:0, elapsed: rec?rec.elapsed:0, mistakes: rec?rec.mistakes:0,
         marks: rec?rec.marks.slice():[], tries:0, status:'ready', input:'', wrong:new Set() };
   startScreen(!!rec);
 }
+// Practice: a random theme at a medium-hard level, never the same puzzle twice.
+function practiceRounds(game, sys){
+  const theme = THEME_IDS[Math.floor(Math.random()*THEME_IDS.length)];
+  return {theme, rounds: buildRounds(game, sys, 'practice|'+Math.random(), theme, 0.7)};
+}
 function openPractice(game){
   const unit = mem.unit, sys = SYS[unit];
   G = { game, unit, sys, key:dateKey(), daily:false,
-        rounds: buildRounds(game, sys, 'practice|'+Math.random()),
+        ...practiceRounds(game, sys),
         idx:0, elapsed:0, mistakes:0, marks:[], tries:0, status:'ready', input:'', wrong:new Set() };
   startScreen(false);
 }
@@ -538,12 +459,16 @@ function startScreen(resuming){
   if(G.idx >= G.rounds.length){ finish(); return; }
   show('play');
   $('playTitle').textContent = `${GAMES[G.game].name}, ${G.daily?'puzzle '+puzzleNo(G.key):'practice'} (${G.unit})`;
+  const th = THEMES[G.theme];
   renderRound(true);
   updateHud();
-  $('ovTitle').textContent = resuming ? 'Pick up where you left off' : GAMES[G.game].name;
+  $('ovTitle').textContent = resuming ? 'Pick up where you left off' : `${GAMES[G.game].name}: ${th.name}`;
   const list = G.game==='count'
     ? [`${GAMES.count.rounds} bars. Each shows one side; the other side matches.`, `Enter the total, including the ${G.sys.bar} ${G.unit} bar.`]
-    : [`${GAMES.workin.rounds} work-ins. You're on the bar; your work-in partner lifts lighter.`, 'Pick the one plate that comes off each side to get their weight.', 'From round 5 you have to count your own bar first.'];
+    : G.rounds.some(r=>r.add)
+      ? [`${GAMES.workin.rounds} work-ins. You're on the bar and your partner lifts next.`, 'Pick the one plate that comes off each side, or goes on when they lift heavier.', `From round ${G.rounds.findIndex(r=>r.visual)+1} you have to count your own bar first.`]
+      : [`${GAMES.workin.rounds} work-ins. You're on the bar; your work-in partner lifts lighter.`, 'Pick the one plate that comes off each side to get their weight.', `From round ${G.rounds.findIndex(r=>r.visual)+1} you have to count your own bar first.`];
+  if(!resuming) list.unshift(th.blurb);
   list.push('Each mistake adds 5 seconds. Three on one bar and it moves on.');
   if(resuming) list.unshift(`You're on ${G.idx+1} of ${G.rounds.length}, at ${fmtTime(G.elapsed)}.`);
   $('ovList').innerHTML = list.map(t=>`<li>${t}</li>`).join('');
@@ -599,11 +524,12 @@ function renderRound(){
     $('controls').innerHTML = `<div class="keypad">${['1','2','3','4','5','6','7','8','9','.','0','⌫'].map(k=>`<button type="button" class="key" data-k="${k}" aria-label="${k==='⌫'?'Delete':k}">${k}</button>`).join('')}<button type="button" class="key go" data-k="enter">Check</button></div>`;
     $('controls').querySelectorAll('.key').forEach(b=>b.addEventListener('click',()=>press(b.dataset.k)));
   } else {
+    const ask = r.add ? 'Which plate goes on each side?' : 'Which plate comes off each side?';
     if(r.visual){
-      prompt.innerHTML = `This is your bar. Your work-in needs <b>${fmtW(r.B)} ${u}</b>. Which plate comes off each side?`;
-      $('figure').innerHTML = barSVG(sys, r.heavy);
+      prompt.innerHTML = `This is your bar. Your work-in needs <b>${fmtW(r.B)} ${u}</b>. ${ask}`;
+      $('figure').innerHTML = barSVG(sys, r.bar);
     } else {
-      prompt.innerHTML = `Which plate comes off each side?`;
+      prompt.innerHTML = ask;
       $('figure').innerHTML = `<div class="duo"><div class="on"><span>You, on the bar</span><b>${fmtW(r.A)}</b> ${u}</div><div><span>Your work-in</span><b>${fmtW(r.B)}</b> ${u}</div></div>`;
     }
     $('answerArea').innerHTML = '';
@@ -640,7 +566,9 @@ function pick(d, btn){
   const r = G.rounds[G.idx];
   if(d===r.answer){ btn.classList.add('right'); return correct(); }
   G.wrong.add(d); btn.classList.add('wrong'); btn.setAttribute('aria-disabled','true');
-  wrong(`Pull a ${fmtW(r.answer)} from each side: ${fmtW(r.A)} down to ${fmtW(r.B)}.`);
+  wrong(r.add
+    ? `Add a ${fmtW(r.answer)} to each side: ${fmtW(r.A)} up to ${fmtW(r.B)}.`
+    : `Pull a ${fmtW(r.answer)} from each side: ${fmtW(r.A)} down to ${fmtW(r.B)}.`);
 }
 
 function correct(){
@@ -701,7 +629,7 @@ function finish(){
     if(s.best[G.unit]==null || final < s.best[G.unit]) s.best[G.unit] = final;
     save();
   }
-  const ctx = {game:G.game, unit:G.unit, key:G.key, daily:G.daily, ...rec};
+  const ctx = {game:G.game, unit:G.unit, key:G.key, daily:G.daily, theme:G.theme, ...rec};
   G = null;
   showResult(ctx);
 }
@@ -719,7 +647,8 @@ function showResult(r){
   lastResult = r;
   show('result');
   $('resLabel').textContent = `${GAMES[r.game].name} (${r.unit})`;
-  $('resTitle').textContent = r.daily ? `Puzzle ${puzzleNo(r.key)} done` : 'Practice done';
+  const rth = THEMES[r.theme || (r.daily ? dayFor(puzzleNo(r.key)).theme : 'regular')];
+  $('resTitle').textContent = r.daily ? `Puzzle ${puzzleNo(r.key)} done · ${rth.name}` : `Practice done · ${rth.name}`;
   $('resTime').textContent = fmtTime(r.final);
   $('resBreak').textContent = r.mistakes
     ? `${fmtTime(r.raw)} on the clock, plus ${r.mistakes*PENALTY/1000}s for ${r.mistakes} mistake${r.mistakes>1?'s':''}.`
@@ -738,7 +667,8 @@ function showResult(r){
   if(isToday){ const upd=()=>{ const n=new Date(), m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1); const t=Math.max(0,Math.floor((m-n)/1000)); $('next').textContent=`${pad(Math.floor(t/3600))}:${pad(Math.floor(t/60)%60)}:${pad(t%60)}`; }; upd(); countdownTimer=setInterval(upd,1000); }
 }
 function shareText(r){
-  const head = r.daily ? `Benchle #${puzzleNo(r.key)}, ${GAMES[r.game].name} (${r.unit})` : `Benchle practice, ${GAMES[r.game].name} (${r.unit})`;
+  const thName = THEMES[r.theme || (r.daily ? dayFor(puzzleNo(r.key)).theme : 'regular')].name;
+  const head = r.daily ? `Benchle #${puzzleNo(r.key)} · ${thName}\n${GAMES[r.game].name} (${r.unit})` : `Benchle practice · ${thName}\n${GAMES[r.game].name} (${r.unit})`;
   const mis = r.mistakes ? ` with ${r.mistakes} mistake${r.mistakes>1?'s':''}` : ', no mistakes';
   const url = /^https?:/.test(location.protocol) ? '\n'+location.origin+location.pathname+(r.daily && r.key!==dateKey() ? `?puzzle=${puzzleNo(r.key)}` : '') : '';
   return `${head}\n⏱ ${fmtTime(r.final)}${mis}\n${r.marks.map(m=>MARK_EMOJI[m]).join('')}${url}`;
