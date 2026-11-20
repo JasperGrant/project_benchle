@@ -175,8 +175,8 @@ function messUp(rng, pl){
 
 /* ---------------- rounds ---------------- */
 const GAMES = {
-  count:{name:'Bar count', rounds:8},
-  workin:{name:'Work in', rounds:10}
+  count:{name:'Bar count', rounds:4},
+  workin:{name:'Work in', rounds:4}
 };
 
 // level: 0 (Monday-easy) .. 1 (Saturday-hard). Returns plain round objects.
@@ -192,15 +192,16 @@ function buildRounds(game, sys, seed, theme='regular', level=0.5){
       if(game==='count'){
         let plates = theme==='milestone' ? milestoneLoad(rng, sys, t) : genLoad(rng, sys, t, loadStyle);
         if(!plates || total(sys,plates) > sys.maxTotal) continue;
-        if(theme==='messy' && i >= 2 && new Set(plates).size < 2) continue;
-        // Messy rack: the first couple of bars are tidy, the rest are a mess.
-        if(theme==='messy' && i >= 2) plates = messUp(rng, plates);
+        if(theme==='messy' && i >= 1 && new Set(plates).size < 2) continue;
+        // Messy rack: the first bar is tidy, the rest are a mess.
+        if(theme==='messy' && i >= 1) plates = messUp(rng, plates);
         const answer = total(sys, plates);
         if(seen.has(answer) && k<299) continue;
         seen.add(answer); round = {plates, answer};
       } else {
-        // Swap day: from round 3 on, roughly half the work-ins are heavier than you.
-        const add = theme==='swap' && i>=2 && rng() < 0.55;
+        // Swap day: after the first round, about half the work-ins are heavier than you,
+        // and the last one is if none were before it.
+        const add = theme==='swap' && i>=1 && (rng() < 0.5 || (i===N-1 && !out.some(r=>r.add)));
         let light, plate;
         if(theme==='milestone'){
           // The weight your partner wants is a milestone.
@@ -215,14 +216,15 @@ function buildRounds(game, sys, seed, theme='regular', level=0.5){
         }
         let heavy = sortDesc([...light, plate]);
         if(!fits(sys,heavy) || total(sys,heavy) > sys.maxTotal) continue;
-        if(theme==='messy' && i >= 3 && new Set(add ? light : heavy).size < 2) continue;
+        if(theme==='messy' && i >= 2 && new Set(add ? light : heavy).size < 2) continue;
         // You're on the heavy bar when a plate comes off, the light one when it goes on.
         let bar = add ? light.slice() : heavy;
-        if(theme==='messy' && i >= 3) bar = messUp(rng, bar);
+        if(theme==='messy' && i >= 2) bar = messUp(rng, bar);
         const A = total(sys, bar), B = total(sys, add ? heavy : light), key = A+'/'+B;
         if(seen.has(key) && k<299) continue;
         seen.add(key);
-        const visFrom = theme==='messy' ? 3 : level < 0.3 ? 5 : 4;
+        // Picture rounds (count your own bar first): the last two, or just the last on easy days.
+        const visFrom = level < 0.3 ? N-1 : N-2;
         round = {bar, A, B, answer:plate, add, visual: i>=visFrom};
       }
     }

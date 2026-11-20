@@ -15,8 +15,8 @@ Daily bench-press puzzle site with two timed games, live at https://benchle.win.
 
 ## Games
 
-- **Bar count** (`game === 'count'`): one side of a loaded bar is drawn as SVG (`barSVG`). Player types the total (bar + 2 × plates) on a keypad or keyboard. 8 rounds.
-- **Work in** (`game === 'workin'`): player is on the bar (`r.bar`, weight A); work-in partner needs B. Pick the single plate to remove from each side ((A − B) / 2), or on swap days (`r.add`) the plate to add. Early rounds show both numbers; later ones (`r.visual`, from round 4–6 depending on theme and day) show A's bar as a picture plus B as a number. Answers are plate-shaped buttons. 10 rounds.
+- **Bar count** (`game === 'count'`): one side of a loaded bar is drawn as SVG (`barSVG`). Player types the total (bar + 2 × plates) on a keypad or keyboard. 4 rounds.
+- **Work in** (`game === 'workin'`): player is on the bar (`r.bar`, weight A); work-in partner needs B. Pick the single plate to remove from each side ((A − B) / 2), or on swap days (`r.add`) the plate to add. Early rounds show both numbers; later ones (`r.visual`: rounds 3–4, or only round 4 on easy days) show A's bar as a picture plus B as a number. Round 1 is always a plain take-off. Answers are plate-shaped buttons. 4 rounds.
 
 ## Mechanics
 
@@ -38,7 +38,7 @@ Safety-yellow "loading zone" palette (`--floor #F2C230`, `--iron #25282D`, `--ch
 ## Testing
 
 No test suite yet. What was verified before handoff:
-- `npm run puzzles` checks every frozen day: correct totals, ≤ 8 plates and fits the sleeve, under `maxTotal`, unique answers per game, Work in answers are real plates equal to |A − B| / 2 in the right direction, theme rules (messy bars out of order with mixed plates, milestone totals, add rounds only on swap days), no theme two days running, and encode/decode round-trips. The generator also passes these checks through day 2000.
+- `npm run puzzles` checks every frozen day: correct totals, ≤ 8 plates and fits the sleeve, under `maxTotal`, unique answers per game, Work in answers are real plates equal to |A − B| / 2 in the right direction, theme rules (messy bars out of order with mixed plates from round 2, milestone totals, add rounds only on swap days and at least one there), every Work in has a picture round, round 1 is a plain take-off, no theme two days running, and encode/decode round-trips. The generator also passes these checks through day 2000.
 - Full play-through of both games in headless Chrome (Playwright) at 390 px and 1280 px with no console errors.
 
 ## Ideas not built yet

@@ -64,8 +64,8 @@ days.forEach((raw, i) => {
       answers.add(r.answer);
       if (r.answer > sys.maxTotal) fail(n, `${unit} count ${k + 1}: ${r.answer} is heavier than ${sys.maxTotal}`);
       const mixed = new Set(r.plates).size > 1;
-      if (raw.t === 'messy' && k >= 2 && !mixed) fail(n, `${unit} count ${k + 1}: messy rack bar has only one kind of plate`);
-      if (raw.t === 'messy' && k >= 2 && mixed && G.isSorted(r.plates)) fail(n, `${unit} count ${k + 1}: messy rack bar is tidy`);
+      if (raw.t === 'messy' && k >= 1 && !mixed) fail(n, `${unit} count ${k + 1}: messy rack bar has only one kind of plate`);
+      if (raw.t === 'messy' && k >= 1 && mixed && G.isSorted(r.plates)) fail(n, `${unit} count ${k + 1}: messy rack bar is tidy`);
       if (raw.t !== 'messy' && !G.isSorted(r.plates)) fail(n, `${unit} count ${k + 1}: plates out of order`);
       if (raw.t === 'milestone' && !sys.milestones.includes(r.answer)) fail(n, `${unit} count ${k + 1}: ${r.answer} is not a milestone`);
       const tt = stats.totals[unit];
@@ -90,6 +90,8 @@ days.forEach((raw, i) => {
       if (pairs.has(key)) fail(n, `${unit} workin ${k + 1}: repeated work-in ${key}`);
       pairs.add(key);
     });
+    if (!workin.some(r => r.visual)) fail(n, `${unit} workin has no picture round`);
+    if (workin[0].visual || workin[0].add) fail(n, `${unit} workin round 1 should be a plain take-off with both numbers`);
     if (raw.t === 'swap' && !workin.some(r => r.add)) fail(n, `${unit} swap day has no heavier work-ins`);
   }
 });
