@@ -32,7 +32,7 @@ Daily bench-press puzzle site with two timed games, live at https://benchle.win.
 
 ## Temporary
 
-- `maybeHello()` in `index.html`: between rounds, a 15% chance (at most once per game) of a 1.5 s "Hello Trevor Tran 👋" overlay, with the clock paused. Remove it with its call in `advance()`, the `#hello` element and the `.hello` styles when asked.
+- `maybeHello()` in `index.html`: right after round 3 of every game (before round 4), a 1.5 s "Hello Trevor Tran 👋" overlay, with the clock paused. Remove it with its call in `advance()`, the `#hello` element and the `.hello` styles when asked.
 
 ## Design
 

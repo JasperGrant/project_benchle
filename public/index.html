@@ -602,12 +602,12 @@ function wrong(revealText){
   }
 }
 
-/* TEMPORARY: now and then, between rounds, say hello to Trevor, then carry on.
+/* TEMPORARY: right after round 3 of every game, say hello to Trevor, then carry on.
    The clock is paused while it shows. To remove: delete this function, its call
    in advance(), the #hello element and the .hello styles. */
-const HELLO_CHANCE = 0.15, HELLO_MS = 1500;
+const HELLO_AFTER_ROUND = 3, HELLO_MS = 1500;
 function maybeHello(g, next){
-  if(g.helloed || Math.random() >= HELLO_CHANCE) return next();
+  if(g.helloed || g.idx !== HELLO_AFTER_ROUND) return next();
   g.helloed = true;
   $('hello').hidden = false;
   setTimeout(()=>{ $('hello').hidden = true; next(); }, HELLO_MS);
