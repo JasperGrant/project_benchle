@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plate Math</title>
+<title>Benchle</title>
 <meta name="description" content="Two daily bench-press puzzles. Count the bar from one side, and pick the plate to pull for a smooth work-in. Timed, with mistakes.">
 <meta name="theme-color" content="#F2C230">
-<meta property="og:title" content="Plate Math">
+<meta property="og:title" content="Benchle">
 <meta property="og:description" content="Daily bench-press plate math. Count the bar. Nail the work-in. Beat the clock.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F2C230'/%3E%3Ccircle cx='32' cy='32' r='24' fill='%2325282D'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%23474D55' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23F2C230'/%3E%3C/svg%3E">
@@ -41,8 +41,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .link{background:none;border:0;padding:6px 0;font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
 
 /* ---------- home ---------- */
-.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:6px}
-.wordmark{font-family:var(--cond);font-weight:800;font-size:clamp(64px,19vw,104px);line-height:.82;letter-spacing:-.015em;margin:0}
+.mast{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:6px}
+.wordmark{font-family:var(--cond);font-weight:800;font-size:clamp(52px,16vw,104px);line-height:.82;letter-spacing:-.015em;margin:0}
 .units{display:inline-flex;border-radius:999px;box-shadow:inset 0 0 0 3px var(--iron);padding:3px;margin-bottom:8px;flex:none}
 .units button{border:0;background:none;font-family:var(--cond);font-weight:700;font-size:19px;padding:5px 14px;border-radius:999px;min-width:48px}
 .units button[aria-pressed="true"]{background:var(--iron);color:var(--chalk)}
@@ -144,7 +144,7 @@ textarea{width:100%;font:15px/1.4 var(--body);border-radius:12px;border:3px soli
 <!-- ================= HOME ================= -->
 <section id="home">
   <div class="mast">
-    <h1 class="wordmark">Plate<br>Math</h1>
+    <h1 class="wordmark">Benchle</h1>
     <div class="units" role="group" aria-label="Units">
       <button type="button" data-unit="lb" aria-pressed="true">lb</button>
       <button type="button" data-unit="kg" aria-pressed="false">kg</button>
@@ -360,7 +360,7 @@ function barSVG(sys, plates){
 }
 
 /* ---------------- storage ---------------- */
-const STORE_KEY = 'platemath:v1';
+const STORE_KEY = 'platemath:v1'; // old name kept so players keep their stats
 let mem = {unit:'lb', days:{}, stats:{}};
 try{ const raw = localStorage.getItem(STORE_KEY); if(raw) mem = Object.assign(mem, JSON.parse(raw)); }catch(e){}
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(mem)); }catch(e){} }
@@ -630,7 +630,7 @@ function showResult(r){
   if(r.daily){ const upd=()=>{ const n=new Date(), m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1); const t=Math.max(0,Math.floor((m-n)/1000)); $('next').textContent=`${pad(Math.floor(t/3600))}:${pad(Math.floor(t/60)%60)}:${pad(t%60)}`; }; upd(); countdownTimer=setInterval(upd,1000); }
 }
 function shareText(r){
-  const head = r.daily ? `Plate Math #${puzzleNo(r.key)}, ${GAMES[r.game].name} (${r.unit})` : `Plate Math practice, ${GAMES[r.game].name} (${r.unit})`;
+  const head = r.daily ? `Benchle #${puzzleNo(r.key)}, ${GAMES[r.game].name} (${r.unit})` : `Benchle practice, ${GAMES[r.game].name} (${r.unit})`;
   const mis = r.mistakes ? ` with ${r.mistakes} mistake${r.mistakes>1?'s':''}` : ', no mistakes';
   const url = /^https?:/.test(location.protocol) ? '\n'+location.origin+location.pathname : '';
   return `${head}\n⏱ ${fmtTime(r.final)}${mis}\n${r.marks.map(m=>MARK_EMOJI[m]).join('')}${url}`;

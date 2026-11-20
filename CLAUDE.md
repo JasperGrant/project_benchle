@@ -1,6 +1,6 @@
-# Plate Math: notes for Claude Code
+# Benchle: notes for Claude Code
 
-Daily bench-press puzzle site with two timed games. Static only: no backend, no build step, no framework.
+Daily bench-press puzzle site with two timed games, live at https://benchle.win. The site was first called Plate Math; the Worker name `plate-math` and the storage key `platemath:v1` keep that name on purpose (renaming them would break the deploy and reset players' stats). Static only: no backend, no build step, no framework.
 
 ## Layout
 

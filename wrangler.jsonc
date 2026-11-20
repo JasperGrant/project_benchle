@@ -2,6 +2,8 @@
   // Static-assets-only Cloudflare Worker. No server code needed:
   // the puzzles are generated in the browser from today's date.
   "$schema": "./node_modules/wrangler/config-schema.json",
+  // Worker name kept from before the Benchle rename: changing it would create a
+  // new Worker and break the Cloudflare Git build that deploys this one.
   "name": "plate-math",
   "compatibility_date": "2025-09-01",
   // Attach both hostnames to this Worker on every deploy. Cloudflare creates the

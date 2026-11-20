@@ -1,4 +1,4 @@
-# Plate Math
+# Benchle
 
 Two daily bench-press puzzles, timed, with mistakes counted.
 
