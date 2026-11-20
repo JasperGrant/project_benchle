@@ -5,7 +5,7 @@ Two daily bench-press puzzles, timed, with mistakes counted.
 - **Bar count:** you see one side of a loaded bar and enter the total weight, bar included. 8 bars a day, getting messier as you go.
 - **Work in:** you're on the bar and someone works in at a lighter weight. Pick the one plate that comes off each side. 10 rounds a day; from round 5 you have to count your own bar from the picture first.
 
-Everyone gets the same puzzles on the same date. They're generated in the browser from the date, so there's no backend or database. Each mistake adds 5 seconds. Three mistakes on one bar shows the answer and moves on. Results, streaks and best times are saved in the player's browser (localStorage). Unfinished games resume where you left off. Both games work in lb (45 lb bar) or kg (20 kg bar), and there's an unlimited practice mode.
+Everyone gets the same puzzles on the same date. They're generated in the browser from the date, so there's no backend or database. Each mistake adds 5 seconds. Three mistakes on one bar shows the answer and moves on. Results, streaks and best times are saved in the player's browser (localStorage). Unfinished games resume where you left off. Every past puzzle is playable from the Archive calendar, and `?puzzle=N` links straight to one. Both games work in lb (45 lb bar) or kg (20 kg bar), and there's an unlimited practice mode.
 
 ## Deploy to Cloudflare
 

@@ -16,11 +16,13 @@ Daily bench-press puzzle site with two timed games, live at https://benchle.win.
 
 ## Mechanics
 
-- Daily puzzles are deterministic: `buildRounds(game, sys, "YYYY-MM-DD|game|unit")` seeded with xmur3 + mulberry32. Local-date rollover. Puzzle #1 = `EPOCH` (2026-11-19). **Changing the generator, `SYS`, or round counts reshuffles every day's puzzles.**
+- Daily puzzles are deterministic, and every past day stays playable: `buildRounds(game, sys, "YYYY-MM-DD|game|unit")` seeded with xmur3 + mulberry32. Local-date rollover. Puzzle #1 = `EPOCH` (2026-11-19). **Changing the generator, `SYS`, or round counts reshuffles every day's puzzles.**
 - `genLoad(rng, sys, t, maxPlates)` makes realistic loads (heaviest plates nearest the collar), difficulty `t` from 0 to 1, capped at 8 plates and `MAX_SLEEVE` px of sleeve.
 - Units: `SYS.lb` (45 lb bar; 45/35/25/10/5/2.5 iron plates) and `SYS.kg` (20 kg bar; 25/20/15/10/5/2.5/1.25 in IPF colors via `KG_LOOK`).
 - Timer only accrues while `G.status === 'active'` (not during the overlay or between-round transitions). Mistake = +`PENALTY` (5000 ms). `MAX_TRIES` (3) mistakes on one round reveals the answer and marks it red.
 - Marks per round: `g` first try, `y` correct after mistakes, `r` missed. These drive the progress pips and the 🟩🟨🟥 share text.
+- Archive: `#archive` section, a month calendar (newest first) from puzzle 1 to today, like King Grid's. Each day has two marks (Bar count, Work in) for the current unit: green done, amber in progress. Tapping a day sets `viewKey` (null = today) and shows that puzzle on the home screen with the player's time per game. `?puzzle=N` links to a past puzzle; `syncUrl()` keeps the URL and title in step, and drops back to today when the viewed day is today or later.
+- Stats: `played` counts each date once per game (even if finished in both units). Streaks only count puzzles finished on their own date; archive plays count toward `best` but not the streak. A streak whose `last` day is before yesterday shows as 0.
 - Persistence: localStorage key `platemath:v1` → `{unit, days: {"date|game|unit": {...}}, stats: {count|workin: {played, streak, maxStreak, last, best: {lb, kg}}}}`. In-progress games save on each answer and resume via the Play button. All storage access is wrapped in try/catch.
 - Share: native share sheet on touch devices (not in iframes), else clipboard, else a selectable textarea.
 

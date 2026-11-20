@@ -47,7 +47,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .units button{border:0;background:none;font-family:var(--cond);font-weight:700;font-size:19px;padding:5px 14px;border-radius:999px;min-width:48px}
 .units button[aria-pressed="true"]{background:var(--iron);color:var(--chalk)}
 .lede{font-size:19px;max-width:30em;margin:16px 0 4px}
-.today{font-weight:600;margin:0 0 22px}
+.today{font-weight:600;margin:0}
+.daynav{display:flex;flex-wrap:wrap;gap:4px 18px;margin:0 0 18px}
+.past-note{background:var(--iron);color:var(--chalk);border-radius:12px;padding:8px 12px;font-weight:600;font-size:15px;margin:0 0 16px}
+.game .status b{font-family:var(--cond);font-weight:800;font-size:22px}
 .game{display:grid;grid-template-columns:92px 1fr;gap:16px;align-items:start;background:var(--chalk);border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:0 6px 0 var(--floor-deep)}
 .game h2{font-family:var(--cond);font-weight:800;font-size:36px;line-height:1;margin:2px 0 6px}
 .game p{margin:0 0 12px}
@@ -57,6 +60,23 @@ button{font:inherit;color:inherit;cursor:pointer}
 .icon{width:92px;height:92px}
 .rules{font-size:15px;color:var(--iron-2);margin-top:26px;border-top:3px solid var(--iron);padding-top:12px}
 .rules p{margin:0 0 6px}
+
+/* ---------- archive ---------- */
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;font-weight:600;color:var(--iron-2);margin:0 0 6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.month h3{font-family:var(--cond);font-weight:800;font-size:28px;margin:18px 0 8px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}
+.cal .wd{font-size:13px;font-weight:700;color:var(--iron-2)}
+.cal .off{display:grid;place-items:center;aspect-ratio:1;font-family:var(--cond);font-weight:700;font-size:20px;color:rgba(37,40,45,.3)}
+.day{aspect-ratio:1;border:0;border-radius:12px;background:var(--chalk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;box-shadow:0 3px 0 var(--floor-deep)}
+.day:active{transform:translateY(2px);box-shadow:0 1px 0 var(--floor-deep)}
+.day .n{font-family:var(--cond);font-weight:800;font-size:21px;line-height:1}
+.day.today{box-shadow:inset 0 0 0 3px var(--iron),0 3px 0 var(--floor-deep)}
+.marks{display:flex;gap:3px}
+.marks i,.legend i{display:block;width:11px;height:6px;border-radius:3px;background:rgba(37,40,45,.16)}
+.marks i.done,.legend i.done{background:var(--hit)}
+.marks i.play,.legend i.play{background:var(--near)}
+.arch-note{font-size:15px;color:var(--iron-2);margin:16px 0 0}
 
 /* ---------- play ---------- */
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
@@ -152,6 +172,11 @@ textarea{width:100%;font:15px/1.4 var(--body);border-radius:12px;border:3px soli
   </div>
   <p class="lede">Two bench-press puzzles a day. Everyone gets the same bars, and new ones load at midnight.</p>
   <p class="today" id="today"></p>
+  <div class="daynav">
+    <button class="link" type="button" id="toToday" hidden>Today's puzzle</button>
+    <button class="link" type="button" id="openArchive">Archive</button>
+  </div>
+  <p class="past-note" id="pastNote" hidden></p>
 
   <article class="game">
     <svg class="icon" viewBox="0 0 92 92" aria-hidden="true"><circle cx="46" cy="46" r="44" fill="#25282D"/><circle cx="46" cy="46" r="32" fill="none" stroke="#474D55" stroke-width="4"/><circle cx="46" cy="46" r="9" fill="#F2C230"/><circle cx="46" cy="46" r="9" fill="none" stroke="#15171a" stroke-width="3"/><text x="46" y="27" text-anchor="middle" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-weight="800" font-size="17" fill="#EDE8DA" class="icon-num">45</text></svg>
@@ -178,6 +203,19 @@ textarea{width:100%;font:15px/1.4 var(--body);border-radius:12px;border:3px soli
     <p>The clock runs while you answer. Each mistake adds 5 seconds. Three mistakes on one bar and the answer is shown.</p>
     <p><button class="link" type="button" id="practice-count">Practice bar count</button> &nbsp; <button class="link" type="button" id="practice-workin">Practice work in</button></p>
   </div>
+</section>
+
+<!-- ================= ARCHIVE ================= -->
+<section id="archive" hidden>
+  <div class="topbar"><button class="link" type="button" id="archBack">Games</button><span class="title">Archive</span></div>
+  <p class="lede">Missed a day? Every puzzle so far is here. Pick one to play it or see your times.</p>
+  <div class="legend">
+    <span><i class="done"></i> Done</span>
+    <span><i class="play"></i> In progress</span>
+    <span>Left mark: Bar count. Right mark: Work in.</span>
+  </div>
+  <div id="months"></div>
+  <p class="arch-note" id="archNote"></p>
 </section>
 
 <!-- ================= PLAY ================= -->
@@ -247,6 +285,9 @@ const dateKey = (d=new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${p
 const EPOCH = new Date(2026,10,19); // puzzle no. 1
 function puzzleNo(key){const [y,m,d]=key.split('-').map(Number);return Math.round((new Date(y,m-1,d)-EPOCH)/864e5)+1;}
 function prevKey(key){const [y,m,d]=key.split('-').map(Number);return dateKey(new Date(y,m-1,d-1));}
+const keyForPuzzle = n => dateKey(new Date(EPOCH.getFullYear(),EPOCH.getMonth(),EPOCH.getDate()+n-1));
+const dateOf = key => { const [y,m,d]=key.split('-').map(Number); return new Date(y,m-1,d); };
+const longDate = key => dateOf(key).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 
 /* ---------------- equipment ---------------- */
 const KG_LOOK = {
@@ -370,14 +411,39 @@ function statsFor(game){ return mem.stats[game] || (mem.stats[game] = {played:0,
 /* ---------------- helpers ---------------- */
 const $ = id => document.getElementById(id);
 function fmtTime(ms){ const t = Math.max(0,Math.floor(ms/100)); const m = Math.floor(t/600), s = Math.floor(t/10)%60, d = t%10; return `${m}:${pad(s)}.${d}`; }
-function show(id){ for(const s of ['home','play','result']) $(s).hidden = s!==id; window.scrollTo(0,0); }
+function show(id){ for(const s of ['home','archive','play','result']) $(s).hidden = s!==id; window.scrollTo(0,0); }
 const MARK_EMOJI = {g:'🟩', y:'🟨', r:'🟥'};
+
+/* ---------------- which puzzle is on screen ---------------- */
+// viewKey is the date of an archive puzzle being viewed, or null for today's.
+let viewKey = null;
+const curKey = () => viewKey || dateKey();
+{
+  const n = Number(new URLSearchParams(location.search).get('puzzle'));
+  if(Number.isInteger(n) && n>=1 && n<puzzleNo(dateKey())) viewKey = keyForPuzzle(n);
+}
+function syncUrl(){
+  if(viewKey && viewKey>=dateKey()) viewKey = null;   // the viewed day became today
+  const n = puzzleNo(curKey());
+  document.title = viewKey ? `Benchle #${n}` : 'Benchle';
+  try{
+    const url = location.pathname + (viewKey ? `?puzzle=${n}` : '');
+    if(url !== location.pathname + location.search) history.replaceState(null,'',url);
+  }catch(e){}
+}
+function viewPuzzle(n){
+  viewKey = n>=puzzleNo(dateKey()) ? null : keyForPuzzle(n);
+  renderHome(); show('home');
+}
 
 /* ---------------- home ---------------- */
 function renderHome(){
-  const key = dateKey(), unit = mem.unit, sys = SYS[unit];
-  const d = new Date();
-  $('today').textContent = `Puzzle ${puzzleNo(key)} for ${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}`;
+  syncUrl();
+  const key = curKey(), unit = mem.unit, sys = SYS[unit], past = !!viewKey;
+  $('today').textContent = `Puzzle ${puzzleNo(key)} · ${longDate(key)}`;
+  $('toToday').hidden = !past;
+  $('pastNote').hidden = !past;
+  $('pastNote').textContent = 'This is an archive puzzle. Your time counts toward your best, but not your streak.';
   $('rule-bar').textContent = unit==='lb'
     ? 'The bar weighs 45 lb. Collars count as zero. Plates: 45, 35, 25, 10, 5 and 2.5.'
     : 'The bar weighs 20 kg. Collars count as zero. Plates: 25, 20, 15, 10, 5, 2.5 and 1.25.';
@@ -386,11 +452,11 @@ function renderHome(){
     const rec = mem.days[dayId(key,g,unit)], st = $('st-'+g), btn = $('go-'+g);
     st.classList.remove('done');
     if(rec && rec.status==='done'){
-      st.textContent = `Done today in ${fmtTime(rec.final)}.`; st.classList.add('done'); btn.textContent = 'See result';
+      st.innerHTML = `Your time: <b>${fmtTime(rec.final)}</b>${rec.mistakes?` (${rec.mistakes} mistake${rec.mistakes>1?'s':''})`:''}`; st.classList.add('done'); btn.textContent = 'See result';
     } else if(rec && rec.status==='playing'){
-      st.textContent = `In progress: bar ${rec.idx+1} of ${GAMES[g].rounds}.`; btn.textContent = 'Resume';
+      st.textContent = `In progress: bar ${rec.idx+1} of ${GAMES[g].rounds}, ${fmtTime(rec.elapsed)} so far.`; btn.textContent = 'Resume';
     } else {
-      st.textContent = `${GAMES[g].rounds} ${g==='count'?'bars':'work-ins'} today, ${unit}.`; btn.textContent = 'Play';
+      st.textContent = `${GAMES[g].rounds} ${g==='count'?'bars':'work-ins'}, ${unit}.`; btn.textContent = 'Play';
     }
   }
   document.querySelectorAll('.icon-num').forEach(n=>n.textContent = fmtW(sys.plates[0]));
@@ -401,13 +467,50 @@ $('go-count').addEventListener('click',()=>openDaily('count'));
 $('go-workin').addEventListener('click',()=>openDaily('workin'));
 $('practice-count').addEventListener('click',()=>openPractice('count'));
 $('practice-workin').addEventListener('click',()=>openPractice('workin'));
+$('toToday').addEventListener('click',()=>{ viewKey = null; renderHome(); show('home'); });
+$('openArchive').addEventListener('click',()=>{ renderArchive(); show('archive'); });
+$('archBack').addEventListener('click',()=>{ renderHome(); show('home'); });
+
+/* ---------------- archive ---------------- */
+const WEEKDAYS = ['S','M','T','W','T','F','S'];
+function markFor(key, game){
+  const rec = mem.days[dayId(key,game,mem.unit)];
+  return !rec ? '' : rec.status==='done' ? 'done' : 'play';
+}
+function renderArchive(){
+  const today = dateKey(), last = puzzleNo(today), unit = mem.unit;
+  const first = dateOf(keyForPuzzle(1));
+  let y = dateOf(today).getFullYear(), m = dateOf(today).getMonth();
+  let html = '';
+  while(y > first.getFullYear() || (y === first.getFullYear() && m >= first.getMonth())){
+    const label = new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
+    const len = new Date(y,m+1,0).getDate();
+    let cells = WEEKDAYS.map(d=>`<span class="wd" aria-hidden="true">${d}</span>`).join('');
+    cells += '<span></span>'.repeat(new Date(y,m,1).getDay());
+    for(let day=1; day<=len; day++){
+      const key = dateKey(new Date(y,m,day)), n = puzzleNo(key);
+      if(n<1 || n>last){ cells += `<span class="off">${day}</span>`; continue; }
+      const parts = Object.keys(GAMES).map(g=>{
+        const rec = mem.days[dayId(key,g,unit)];
+        return `${GAMES[g].name} ${!rec ? 'not played' : rec.status==='done' ? fmtTime(rec.final) : 'in progress'}`;
+      });
+      const marks = Object.keys(GAMES).map(g=>`<i class="${markFor(key,g)}"></i>`).join('');
+      cells += `<button type="button" class="day${key===today?' today':''}" data-n="${n}" aria-label="Puzzle ${n}, ${label.split(' ')[0]} ${day}${key===today?' (today)':''}. ${parts.join('. ')}." title="No. ${n}: ${parts.join(' · ')}"><span class="n">${day}</span><span class="marks">${marks}</span></button>`;
+    }
+    html += `<section class="month"><h3>${label}</h3><div class="cal">${cells}</div></section>`;
+    if(--m < 0){ m = 11; y--; }
+  }
+  $('months').innerHTML = html;
+  $('months').querySelectorAll('.day').forEach(b=>b.addEventListener('click',()=>viewPuzzle(+b.dataset.n)));
+  $('archNote').textContent = `Showing your ${unit} results. Switch units on the home screen to see the other set.`;
+}
 
 /* ---------------- game state ---------------- */
 let G = null;   // current game
 let raf = 0;
 
 function openDaily(game){
-  const key = dateKey(), unit = mem.unit, id = dayId(key,game,unit);
+  const key = curKey(), unit = mem.unit, id = dayId(key,game,unit);
   const rec = mem.days[id];
   if(rec && rec.status==='done'){ showResult({game, unit, key, daily:true, ...rec}); return; }
   const sys = SYS[unit];
@@ -467,7 +570,7 @@ function loop(){
   };
   raf = requestAnimationFrame(tick);
 }
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && G && G.status==='active') persist(); else if(!document.hidden && !$('home').hidden) renderHome(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && G && G.status==='active') persist(); else if(!document.hidden && !$('home').hidden) renderHome(); else if(!document.hidden && !$('archive').hidden) renderArchive(); });
 
 $('quit').addEventListener('click',()=>{
   if(G && G.status!=='done'){ if(G.daily) persist(); G.status='paused'; }
@@ -584,10 +687,13 @@ function finish(){
   const final = Math.round(G.elapsed);
   const rec = {status:'done', idx:G.idx, raw, final, mistakes:G.mistakes, marks:G.marks};
   if(G.daily){
-    mem.days[G.id] = rec;
     const s = statsFor(G.game);
-    if(s.last !== G.key){
-      s.played++;
+    // A day counts once as "played" even if it's finished in both units.
+    const seen = Object.keys(SYS).some(u=>{ const o = mem.days[dayId(G.key,G.game,u)]; return u!==G.unit && o && o.status==='done'; });
+    mem.days[G.id] = rec;
+    if(!seen) s.played++;
+    // Streaks only count puzzles finished on their own day, not archive catch-ups.
+    if(G.key === dateKey() && s.last !== G.key){
       s.streak = s.last === prevKey(G.key) ? s.streak+1 : 1;
       s.maxStreak = Math.max(s.maxStreak, s.streak);
       s.last = G.key;
@@ -622,17 +728,19 @@ function showResult(r){
   $('resRank').textContent = rankFor(r.game, r.final);
   $('again').textContent = r.daily ? 'Practice' : 'Play another';
   $('shareMsg').textContent = ''; $('shareText').hidden = true;
-  const s = statsFor(r.game);
-  $('stats').hidden = !r.daily; $('nextWrap').hidden = !r.daily;
-  $('sPlayed').textContent = s.played; $('sStreak').textContent = s.streak;
+  const s = statsFor(r.game), isToday = r.daily && r.key === dateKey();
+  $('stats').hidden = !r.daily; $('nextWrap').hidden = !isToday;
+  $('sPlayed').textContent = s.played;
+  // A streak whose last day is before yesterday has already been broken.
+  $('sStreak').textContent = (s.last === dateKey() || s.last === prevKey(dateKey())) ? s.streak : 0;
   $('sBest').textContent = s.best[r.unit]!=null ? fmtTime(s.best[r.unit]) : '–';
   clearInterval(countdownTimer);
-  if(r.daily){ const upd=()=>{ const n=new Date(), m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1); const t=Math.max(0,Math.floor((m-n)/1000)); $('next').textContent=`${pad(Math.floor(t/3600))}:${pad(Math.floor(t/60)%60)}:${pad(t%60)}`; }; upd(); countdownTimer=setInterval(upd,1000); }
+  if(isToday){ const upd=()=>{ const n=new Date(), m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1); const t=Math.max(0,Math.floor((m-n)/1000)); $('next').textContent=`${pad(Math.floor(t/3600))}:${pad(Math.floor(t/60)%60)}:${pad(t%60)}`; }; upd(); countdownTimer=setInterval(upd,1000); }
 }
 function shareText(r){
   const head = r.daily ? `Benchle #${puzzleNo(r.key)}, ${GAMES[r.game].name} (${r.unit})` : `Benchle practice, ${GAMES[r.game].name} (${r.unit})`;
   const mis = r.mistakes ? ` with ${r.mistakes} mistake${r.mistakes>1?'s':''}` : ', no mistakes';
-  const url = /^https?:/.test(location.protocol) ? '\n'+location.origin+location.pathname : '';
+  const url = /^https?:/.test(location.protocol) ? '\n'+location.origin+location.pathname+(r.daily && r.key!==dateKey() ? `?puzzle=${puzzleNo(r.key)}` : '') : '';
   return `${head}\n⏱ ${fmtTime(r.final)}${mis}\n${r.marks.map(m=>MARK_EMOJI[m]).join('')}${url}`;
 }
 $('share').addEventListener('click', async ()=>{
