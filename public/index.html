@@ -145,6 +145,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .pips.big li{height:16px;border-radius:8px}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .msg{min-height:1.5em;font-weight:600;margin:8px 0 0}
+.textit{display:block;text-align:center;margin:12px 0 0;color:inherit;font-size:18px}
 textarea{width:100%;font:15px/1.4 var(--body);border-radius:12px;border:3px solid var(--iron);padding:10px;background:var(--chalk);margin-top:6px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0 6px;background:var(--chalk);border-radius:20px;padding:14px;box-shadow:0 6px 0 var(--floor-deep)}
 .stats div{text-align:center}
@@ -258,6 +259,7 @@ textarea{width:100%;font:15px/1.4 var(--body);border-radius:12px;border:3px soli
     <button class="btn" type="button" id="share">Share</button>
     <button class="btn ghost" type="button" id="again"></button>
   </div>
+  <a class="link textit" id="textIt" href="#" hidden>Send as a text</a>
   <p class="msg" id="shareMsg" aria-live="polite"></p>
   <textarea id="shareText" rows="5" readonly hidden></textarea>
   <dl class="stats" id="stats">
@@ -335,6 +337,9 @@ const $ = id => document.getElementById(id);
 function fmtTime(ms){ const t = Math.max(0,Math.floor(ms/100)); const m = Math.floor(t/600), s = Math.floor(t/10)%60, d = t%10; return `${m}:${pad(s)}.${d}`; }
 function show(id){ for(const s of ['home','archive','play','result']) $(s).hidden = s!==id; window.scrollTo(0,0); }
 const MARK_EMOJI = {g:'🟩', y:'🟨', r:'🟥'};
+// iPadOS reports itself as a Mac, so also check for a touch screen.
+const IS_IOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/.test(navigator.userAgent);
 
 /* ---------------- which puzzle is on screen ---------------- */
 // viewKey is the date of an archive puzzle being viewed, or null for today's.
@@ -679,6 +684,10 @@ function showResult(r){
   $('resRank').textContent = rankFor(r.game, r.final);
   $('again').textContent = r.daily ? 'Practice' : 'Play another';
   $('shareMsg').textContent = ''; $('shareText').hidden = true;
+  // Phones: a link straight into Messages with the result typed in.
+  // iOS wants "sms:&body=", Android "sms:?body=".
+  $('textIt').hidden = !(IS_IOS || IS_ANDROID);
+  if(IS_IOS || IS_ANDROID) $('textIt').href = `sms:${IS_IOS ? '&' : '?'}body=${encodeURIComponent(shareText(r))}`;
   const s = statsFor(r.game), isToday = r.daily && r.key === dateKey();
   $('stats').hidden = !r.daily; $('nextWrap').hidden = !isToday;
   $('sPlayed').textContent = s.played;
@@ -699,7 +708,8 @@ $('share').addEventListener('click', async ()=>{
   if(!lastResult) return;
   const text = shareText(lastResult);
   let framed = true; try{ framed = window.self !== window.top; }catch(e){}
-  if(navigator.share && !framed && matchMedia('(pointer:coarse)').matches){
+  // Phones and tablets get the share sheet (Messages is right at the top on iOS), like Wordle.
+  if(navigator.share && !framed && (IS_IOS || IS_ANDROID || matchMedia('(pointer:coarse)').matches)){
     try{ await navigator.share({text}); return; }catch(e){ if(e && e.name==='AbortError') return; }
   }
   try{ await navigator.clipboard.writeText(text); $('shareMsg').textContent = 'Copied. Paste it in the group chat.'; }

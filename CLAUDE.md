@@ -28,7 +28,7 @@ Daily bench-press puzzle site with two timed games, live at https://benchle.win.
 - Archive: `#archive` section, a month calendar (newest first) from puzzle 1 to today, like King Grid's. Each day has two marks (Bar count, Work in) for the current unit: green done, amber in progress. Tapping a day sets `viewKey` (null = today) and shows that puzzle on the home screen with the player's time per game. `?puzzle=N` links to a past puzzle; `syncUrl()` keeps the URL and title in step, and drops back to today when the viewed day is today or later.
 - Stats: `played` counts each date once per game (even if finished in both units). Streaks only count puzzles finished on their own date; archive plays count toward `best` but not the streak. A streak whose `last` day is before yesterday shows as 0.
 - Persistence: localStorage key `benchle:v1` → `{unit, days: {"date|game|unit": {...}}, stats: {count|workin: {played, streak, maxStreak, last, best: {lb, kg}}}}`. In-progress games save on each answer and resume via the Play button. All storage access is wrapped in try/catch.
-- Share: native share sheet on touch devices (not in iframes), else clipboard, else a selectable textarea.
+- Share: native share sheet on iOS (iPadOS detected by Mac UA + touch points), Android and other touch devices, but not inside iframes; else clipboard, else a selectable textarea. On iOS and Android the result screen also has a "Send as a text" link (`#textIt`) to `sms:&body=` (iOS) / `sms:?body=` (Android) with the share text prefilled.
 
 ## Temporary
 
